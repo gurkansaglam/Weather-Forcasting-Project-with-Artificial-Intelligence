@@ -1,0 +1,57 @@
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
+#define DHTPIN 2
+#define DHTTYPE DHT11 // DHT 11
+typedef union fltdata {
+ float flt ;
+ byte byt[4] ;
+} fltdata;
+fltdata temperature,hum,res;
+DHT_Unified dht(DHTPIN, DHTTYPE);
+float tmp = 0,humidity = 0;
+uint32_t delayMS;
+int ADCdata = 0;
+void setup() {
+ Serial.begin(9600);
+ dht.begin();
+ pinMode(A0,INPUT);
+ sensor_t sensor;
+ // Set delay between sensor readings based on sensor details.
+ delayMS = sensor.min_delay / 1000;
+}
+void loop() {
+ // Delay between measurements.
+ tmp = -1;
+ humidity = -1;
+ delay(2000);
+ // Get temperature event and print its value.
+ ADCdata = analogRead(A0);
+ float volt = ADCdata * (5/1024);
+ float resistance = 1000*((float)ADCdata/1024)*2;
+ res.flt = resistance;
+ sensors_event_t event;
+ dht.temperature().getEvent(&event);
+ if (isnan(event.temperature)) {
+ }
+ else {
+ tmp = event.temperature;
+ }
+ dht.humidity().getEvent(&event);
+ if (isnan(event.relative_humidity)) {
+ }
+ else {
+ humidity = event.relative_humidity;
+ }
+temperature.flt = tmp;
+hum.flt = humidity;
+for(int i = 0; i<4 ; i++){
+Serial.write(temperature.byt[i]);
+}
+for(int i = 0; i<4 ; i++){
+Serial.write(hum.byt[i]);
+}
+for(int i = 0; i<4 ; i++){
+Serial.write(res.byt[i]);
+}
+}
